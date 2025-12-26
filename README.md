@@ -6,15 +6,11 @@ An Apple Maps-style interactive bottom sheet for SwiftUI and UIKit.
 [![iOS 14+](https://img.shields.io/badge/iOS-14+-blue.svg)](https://developer.apple.com/ios/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-<p align="center">
-  <img src="https://via.placeholder.com/300x600?text=Demo+GIF" alt="Demo" width="300">
-</p>
-
 ## Features
 
 - 🎯 **Apple Maps-style behavior** - Seamless scroll/drag coordination
 - 📍 **Configurable snap positions** - Dismiss, bottom, middle, top, or custom heights
-- 🔄 **SwiftUI native** - First-class SwiftUI support
+- 🔄 **SwiftUI native** - First-class SwiftUI support with `SwiftUIAppleMapBottomSheetView`
 - 🛠 **UIKit bridge** - Easy UIKit integration
 - ⚡ **Smooth animations** - Spring animations with velocity preservation
 - 🎨 **Fully customizable** - Colors, corner radius, handle appearance, shadows
@@ -36,7 +32,7 @@ Add this package to your Xcode project:
 1. Go to **File > Add Package Dependencies...**
 2. Enter the repository URL:
    ```
-   https://github.com/yourusername/AppleMapsSheet.git
+   https://github.com/devzahirul/AppleMapsSheet.git
    ```
 3. Select the version and click **Add Package**
 
@@ -44,13 +40,37 @@ Or add it to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/yourusername/AppleMapsSheet.git", from: "1.0.0")
+    .package(url: "https://github.com/devzahirul/AppleMapsSheet.git", from: "1.0.0")
 ]
 ```
 
 ## Quick Start
 
-### SwiftUI
+### SwiftUI - Simple (Just Pass Content)
+
+```swift
+import AppleMapsSheet
+
+struct ContentView: View {
+    var body: some View {
+        ZStack {
+            MapView()
+            
+            // Simplest usage - just pass content
+            SwiftUIAppleMapBottomSheetView {
+                VStack {
+                    Text("My Content")
+                    ForEach(items) { item in
+                        ItemRow(item: item)
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+### SwiftUI - With Position Binding
 
 ```swift
 import AppleMapsSheet
@@ -60,12 +80,75 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            // Your background content (e.g., Map)
             MapView()
             
-            // The bottom sheet
-            AppleMapsSheetView(position: $sheetPosition) {
-                // Your sheet content
+            // Control position externally
+            SwiftUIAppleMapBottomSheetView(position: $sheetPosition) {
+                SearchResultsList()
+            }
+            
+            // Buttons to control position
+            VStack {
+                Button("Expand") { sheetPosition = .top }
+                Button("Middle") { sheetPosition = .middle }
+                Button("Collapse") { sheetPosition = .bottom }
+            }
+        }
+    }
+}
+```
+
+### SwiftUI - With Custom Positions
+
+```swift
+import AppleMapsSheet
+
+struct ContentView: View {
+    @State private var sheetPosition: SheetPosition = .custom(heightRatio: 0.3)
+    
+    // Custom snap positions: 20%, 50%, 80%
+    let customPositions: [SheetPosition] = [
+        .custom(heightRatio: 0.2),
+        .custom(heightRatio: 0.5),
+        .custom(heightRatio: 0.8)
+    ]
+    
+    var body: some View {
+        ZStack {
+            MapView()
+            
+            SwiftUIAppleMapBottomSheetView(
+                position: $sheetPosition,
+                positions: customPositions
+            ) {
+                ContentView()
+            }
+        }
+    }
+}
+```
+
+### SwiftUI - Full Configuration
+
+```swift
+import AppleMapsSheet
+
+struct ContentView: View {
+    @State private var position: SheetPosition = .middle
+    
+    var body: some View {
+        ZStack {
+            MapView()
+            
+            AppleMapsSheetView(
+                position: $position,
+                configuration: AppleMapsSheetConfiguration(
+                    snapPositions: [.dismiss, .middle, .top],
+                    cornerRadius: 20,
+                    backgroundColor: .white,
+                    animation: .smooth
+                )
+            ) {
                 SearchResultsList()
             }
         }
@@ -112,109 +195,17 @@ extension MapViewController: AppleMapsSheetViewControllerDelegate {
 }
 ```
 
-## Configuration
-
-### Custom Snap Positions
-
-Configure which positions the sheet can snap to:
-
-```swift
-let config = AppleMapsSheetConfiguration(
-    snapPositions: [.dismiss, .middle, .top]  // No bottom position
-)
-
-AppleMapsSheetView(position: $position, configuration: config) {
-    Content()
-}
-```
-
-### Custom Heights
-
-```swift
-let config = AppleMapsSheetConfiguration(
-    snapPositions: [
-        .dismiss,
-        .custom(heightRatio: 0.3),  // 30% height
-        .custom(heightRatio: 0.6),  // 60% height
-        .top
-    ]
-)
-```
-
-### Full Customization
-
-```swift
-let config = AppleMapsSheetConfiguration(
-    // Positions
-    snapPositions: [.dismiss, .middle, .top],
-    initialPosition: .middle,
-    
-    // Appearance
-    cornerRadius: 20,
-    backgroundColor: .white,
-    showHandle: true,
-    handleColor: Color(UIColor.systemGray3),
-    handleSize: CGSize(width: 40, height: 6),
-    handlePadding: 10,
-    
-    // Shadow
-    shadow: ShadowConfiguration(
-        color: .black.opacity(0.1),
-        radius: 20,
-        x: 0,
-        y: -5
-    ),
-    
-    // Animation
-    animation: .bouncy,  // or .smooth, .default, or custom
-    
-    // Gesture thresholds
-    dragThreshold: 0.15,
-    velocityThreshold: 500,
-    
-    // Scroll
-    enableScrollAtTop: true,
-    showScrollIndicator: true
-)
-```
-
-## Programmatic Control
-
-### SwiftUI
-
-```swift
-@State private var position: SheetPosition = .dismiss
-
-// Show sheet
-Button("Show Sheet") {
-    position = .middle
-}
-
-// Dismiss sheet
-Button("Dismiss") {
-    position = .dismiss
-}
-
-// Expand to top
-Button("Expand") {
-    position = .top
-}
-```
-
-### UIKit
-
-```swift
-// Show sheet
-sheetController.setPosition(.middle, animated: true)
-
-// Dismiss sheet
-sheetController.setPosition(.dismiss, animated: true)
-
-// Expand to top
-sheetController.setPosition(.top, animated: true)
-```
-
 ## API Reference
+
+### SwiftUIAppleMapBottomSheetView
+
+The simplified SwiftUI wrapper with sensible defaults.
+
+| Init | Description |
+|------|-------------|
+| `init(content:)` | Just pass content, uses default positions |
+| `init(position:content:)` | With position binding |
+| `init(position:positions:content:)` | With custom snap positions |
 
 ### SheetPosition
 
@@ -231,84 +222,61 @@ sheetController.setPosition(.top, animated: true)
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `snapPositions` | `[SheetPosition]` | `[.bottom, .middle, .top]` | Available snap positions |
-| `initialPosition` | `SheetPosition` | `.middle` | Initial position |
 | `cornerRadius` | `CGFloat` | `16` | Corner radius |
 | `backgroundColor` | `Color` | System background | Background color |
 | `showHandle` | `Bool` | `true` | Show drag handle |
-| `handleColor` | `Color` | Gray | Handle color |
-| `handleSize` | `CGSize` | `36x5` | Handle dimensions |
-| `shadow` | `ShadowConfiguration?` | Default shadow | Shadow settings |
 | `animation` | `AnimationConfiguration` | Spring (300, 30) | Animation config |
-| `dragThreshold` | `CGFloat` | `0.12` | Drag threshold |
-| `velocityThreshold` | `CGFloat` | `600` | Flick threshold |
 
 ### AnimationConfiguration Presets
 
-| Preset | Type | Description |
-|--------|------|-------------|
-| `.default` | Spring | Apple Maps style (stiffness: 300, damping: 30) |
-| `.smooth` | Spring | Fluid with minimal overshoot (stiffness: 200, damping: 35) |
-| `.smoothSlow` | Spring | Extra smooth, elegant (stiffness: 150, damping: 25) |
-| `.snappy` | Spring | Quick, responsive (stiffness: 400, damping: 35) |
-| `.bouncy` | Spring | Playful with overshoot (stiffness: 300, damping: 20) |
-| `.eased` | EaseInOut | Classic easing (0.35s) |
-| `.easedSlow` | EaseInOut | Slow easing (0.5s) |
-
-Custom animations:
-```swift
-// Custom spring
-.spring(stiffness: 250, damping: 28)
-
-// Custom easeInOut
-.easeInOut(duration: 0.4)
-```
+| Preset | Description |
+|--------|-------------|
+| `.default` | Apple Maps style |
+| `.smooth` | Fluid with minimal overshoot |
+| `.snappy` | Quick, responsive |
+| `.bouncy` | Playful with overshoot |
 
 ## Examples
 
-The package includes complete example projects demonstrating real-world usage:
+The package includes complete example projects:
 
-### 📱 SwiftUI Example: Map Explorer
+### 📱 SwiftUI Example
 
-Location: `Examples/SwiftUIExample/MapExplorerView.swift`
+Location: `Examples/SwiftUIExample/`
 
-A complete map exploration app demonstrating:
-- Apple Maps integration with `Map` view
-- Tap/long-press on map to search nearby places
-- Category filters (Restaurants, Gas Stations, Cafes, etc.)
-- Search results displayed in `AppleMapsSheetView`
-- Navigation to place details
-- Smooth `.smooth` animation preset
+**Demo List View** with 4 examples:
+1. **Simple Sheet** - Just pass content, no configuration
+2. **Position Binding** - Control position externally with buttons
+3. **Custom Positions** - Define 20%, 50%, 80% snap points
+4. **Full Map Explorer** - Complete MapKit search app
 
-**Key Features:**
-- `@State` position binding for programmatic control
-- Category pills with horizontal scroll
-- Place annotations on map
-- Detail view with actions (Directions, Call, Share)
+Features:
+- MapKit MKLocalSearch integration for real places
+- Category filters (Restaurants, Cafes, Gas Stations, etc.)
+- Tap map to search at location
+- Place annotations and detail navigation
 
-### 📱 UIKit Example: Map Explorer
+### 📱 UIKit Example
 
-Location: `Examples/UIKitExample/MapExplorerViewController.swift`
+Location: `Examples/UIKitExample/`
 
-The same map exploration app built with UIKit:
-- `MKMapView` integration
-- `AppleMapsSheetViewController` with delegate pattern
-- Category collection view with custom cells
-- Places table view with custom cells
-- Navigation controller for place details
+Same functionality built with UIKit and delegate pattern.
 
-**Key Features:**
-- `AppleMapsSheetViewControllerDelegate` for position changes
-- `setContentViewController(_:)` for dynamic content
-- `setPosition(_:animated:)` for programmatic control
-- Custom `MKAnnotationView` for place markers
+### Running Examples
 
-### Running the Examples
+```bash
+# Clone the repository
+git clone https://github.com/devzahirul/AppleMapsSheet.git
 
-1. Clone the repository
-2. Open the package in Xcode
-3. Copy the example file to a new iOS project
-4. Add the AppleMapsSheet package dependency
-5. Run on simulator or device
+# Open in Xcode
+cd AppleMapsSheet
+open Package.swift
+
+# Generate Xcode project for examples (requires XcodeGen)
+cd Examples/SwiftUIExample
+xcodegen generate
+open SwiftUIExample.xcodeproj
+```
 
 ## Requirements
 

@@ -82,18 +82,333 @@ extension CLLocationCoordinate2D {
 
 // MARK: - Example App Entry Point
 
-/// Example SwiftUI App demonstrating AppleMapsSheetView
-///
-/// To run this example:
-/// 1. Create a new iOS App project in Xcode
-/// 2. Add AppleMapsSheet package
-/// 3. Replace the App file content with this code
+/// Example SwiftUI App demonstrating AppleMapsSheet
 @main
 struct MapExplorerApp: App {
     var body: some Scene {
         WindowGroup {
-            MapExplorerView()
+            DemoListView()
         }
+    }
+}
+
+// MARK: - Demo List View
+
+/// Main navigation view showing different demo options
+struct DemoListView: View {
+    var body: some View {
+        NavigationView {
+            List {
+                Section {
+                    NavigationLink {
+                        SimpleSheetDemo()
+                    } label: {
+                        DemoRowView(
+                            icon: "square.stack.3d.up",
+                            title: "Simple Sheet",
+                            subtitle: "Just pass content, no configuration needed",
+                            color: .blue
+                        )
+                    }
+                    
+                    NavigationLink {
+                        PositionBindingDemo()
+                    } label: {
+                        DemoRowView(
+                            icon: "arrow.up.and.down",
+                            title: "With Position Binding",
+                            subtitle: "Control sheet position externally",
+                            color: .green
+                        )
+                    }
+                    
+                    NavigationLink {
+                        CustomPositionsDemo()
+                    } label: {
+                        DemoRowView(
+                            icon: "slider.horizontal.3",
+                            title: "Custom Positions",
+                            subtitle: "Define your own snap positions",
+                            color: .orange
+                        )
+                    }
+                } header: {
+                    Text("SwiftUIAppleMapBottomSheetView Demos")
+                }
+                
+                Section {
+                    NavigationLink {
+                        MapExplorerView()
+                    } label: {
+                        DemoRowView(
+                            icon: "map.fill",
+                            title: "Full Map Explorer",
+                            subtitle: "Complete example with MapKit search",
+                            color: .purple
+                        )
+                    }
+                } header: {
+                    Text("Complete Examples")
+                }
+            }
+            .navigationTitle("AppleMapsSheet")
+        }
+    }
+}
+
+// MARK: - Demo Row View
+
+struct DemoRowView: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(color.opacity(0.15))
+                    .frame(width: 50, height: 50)
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundColor(color)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.headline)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(.vertical, 8)
+    }
+}
+
+// MARK: - Simple Sheet Demo
+
+struct SimpleSheetDemo: View {
+    var body: some View {
+        ZStack {
+            // Map background
+            Map(
+                coordinateRegion: .constant(MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
+                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                ))
+            )
+            .ignoresSafeArea()
+            
+            // Simple sheet - just pass content
+            SwiftUIAppleMapBottomSheetView {
+                VStack(spacing: 0) {
+                    // Header
+                    Text("Simple Sheet Demo")
+                        .font(.headline)
+                        .padding()
+                    
+                    Divider()
+                    
+                    // Content
+                    VStack(spacing: 0) {
+                        ForEach(0..<15) { index in
+                            HStack {
+                                Circle()
+                                    .fill(Color.blue.opacity(0.2))
+                                    .frame(width: 44, height: 44)
+                                    .overlay(
+                                        Image(systemName: "mappin.circle.fill")
+                                            .foregroundColor(.blue)
+                                    )
+                                
+                                VStack(alignment: .leading) {
+                                    Text("Location \(index + 1)")
+                                        .font(.headline)
+                                    Text("Sample destination")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                            
+                            Divider()
+                                .padding(.leading, 80)
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Simple")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - Position Binding Demo
+
+struct PositionBindingDemo: View {
+    @State private var sheetPosition: SheetPosition = .middle
+    
+    var body: some View {
+        ZStack {
+            // Map background
+            Map(
+                coordinateRegion: .constant(MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
+                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                ))
+            )
+            .ignoresSafeArea()
+            
+            // Control buttons
+            VStack {
+                HStack(spacing: 12) {
+                    ForEach([SheetPosition.bottom, .middle, .top], id: \.heightRatio) { position in
+                        Button {
+                            withAnimation(.spring()) {
+                                sheetPosition = position
+                            }
+                        } label: {
+                            Text(positionName(position))
+                                .font(.caption.bold())
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(sheetPosition == position ? Color.blue : Color.white)
+                                .foregroundColor(sheetPosition == position ? .white : .primary)
+                                .cornerRadius(20)
+                                .shadow(radius: 2)
+                        }
+                    }
+                }
+                .padding(.top, 20)
+                
+                Spacer()
+            }
+            
+            // Sheet with position binding
+            SwiftUIAppleMapBottomSheetView(position: $sheetPosition) {
+                VStack(spacing: 0) {
+                    Text("Position: \(positionName(sheetPosition))")
+                        .font(.headline)
+                        .padding()
+                    
+                    Divider()
+                    
+                    VStack(spacing: 0) {
+                        ForEach(0..<10) { index in
+                            HStack {
+                                Image(systemName: "star.fill")
+                                    .foregroundColor(.yellow)
+                                Text("Item \(index + 1)")
+                                Spacer()
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
+                            
+                            Divider()
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Position Binding")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+    
+    private func positionName(_ position: SheetPosition) -> String {
+        switch position {
+        case .bottom: return "Bottom"
+        case .middle: return "Middle"
+        case .top: return "Top"
+        default: return "Custom"
+        }
+    }
+}
+
+// MARK: - Custom Positions Demo
+
+struct CustomPositionsDemo: View {
+    @State private var sheetPosition: SheetPosition = .custom(heightRatio: 0.3)
+    
+    // Custom positions: 20%, 50%, 80%
+    private let customPositions: [SheetPosition] = [
+        .custom(heightRatio: 0.2),
+        .custom(heightRatio: 0.5),
+        .custom(heightRatio: 0.8)
+    ]
+    
+    var body: some View {
+        ZStack {
+            // Map background
+            Map(
+                coordinateRegion: .constant(MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
+                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                ))
+            )
+            .ignoresSafeArea()
+            
+            // Info banner
+            VStack {
+                Text("Custom Positions: 20%, 50%, 80%")
+                    .font(.caption.bold())
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color.orange.opacity(0.9))
+                    .foregroundColor(.white)
+                    .cornerRadius(20)
+                    .padding(.top, 20)
+                
+                Spacer()
+            }
+            
+            // Sheet with custom positions
+            SwiftUIAppleMapBottomSheetView(
+                position: $sheetPosition,
+                positions: customPositions
+            ) {
+                VStack(spacing: 0) {
+                    Text("Custom Snap Positions")
+                        .font(.headline)
+                        .padding()
+                    
+                    Text("Height: \(Int(sheetPosition.heightRatio * 100))%")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .padding(.bottom)
+                    
+                    Divider()
+                    
+                    VStack(spacing: 0) {
+                        ForEach(0..<20) { index in
+                            HStack {
+                                Circle()
+                                    .fill(Color.orange.opacity(0.2))
+                                    .frame(width: 40, height: 40)
+                                    .overlay(Text("\(index + 1)").font(.caption.bold()))
+                                
+                                Text("Custom Item \(index + 1)")
+                                Spacer()
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                            
+                            Divider()
+                                .padding(.leading, 76)
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Custom Positions")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
