@@ -5,7 +5,7 @@
 //  SwiftUI Example: Map Explorer with Place Search
 //
 //  This example demonstrates:
-//  - Apple Maps integration
+//  - Apple Maps integration with current location
 //  - Tap on map to search nearby places
 //  - Category filters (Gas Stations, Restaurants, etc.)
 //  - Results shown in AppleMapsSheetView
@@ -14,7 +14,71 @@
 
 import SwiftUI
 import MapKit
+import CoreLocation
+import Combine
 import AppleMapsSheet
+
+// MARK: - Location Manager
+
+/// Observable location manager for tracking user's current location
+class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+    private let locationManager = CLLocationManager()
+    
+    @Published var userLocation: CLLocationCoordinate2D?
+    @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
+    
+    override init() {
+        super.init()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.distanceFilter = 10
+    }
+    
+    func requestPermission() {
+        locationManager.requestWhenInUseAuthorization()
+    }
+    
+    func startUpdatingLocation() {
+        locationManager.startUpdatingLocation()
+    }
+    
+    func stopUpdatingLocation() {
+        locationManager.stopUpdatingLocation()
+    }
+    
+    // CLLocationManagerDelegate
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last else { return }
+        DispatchQueue.main.async {
+            self.userLocation = location.coordinate
+        }
+    }
+    
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        DispatchQueue.main.async {
+            self.authorizationStatus = manager.authorizationStatus
+            if manager.authorizationStatus == .authorizedWhenInUse ||
+               manager.authorizationStatus == .authorizedAlways {
+                self.startUpdatingLocation()
+            }
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Location error: \(error.localizedDescription)")
+    }
+}
+
+// MARK: - CLLocationCoordinate2D Extension
+
+extension CLLocationCoordinate2D {
+    /// Calculate distance to another coordinate in meters
+    func distance(to other: CLLocationCoordinate2D) -> Double {
+        let from = CLLocation(latitude: self.latitude, longitude: self.longitude)
+        let to = CLLocation(latitude: other.latitude, longitude: other.longitude)
+        return from.distance(from: to)
+    }
+}
 
 // MARK: - Example App Entry Point
 
@@ -40,17 +104,20 @@ struct MapExplorerView: View {
     
     // MARK: - State
     
+    @StateObject private var locationManager = LocationManager()
     @State private var sheetPosition: SheetPosition = .middle
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194), // San Francisco
         span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
     )
-    @State private var searchLocation: CLLocationCoordinate2D?
     @State private var selectedCategory: PlaceCategory = .restaurant
-    @State private var places: [Place] = []
-    @State private var isSearching = false
+    // Static places array - like ExploreView's services
+    @State private var places: [Place] = Place.mockPlaces(for: .restaurant, near: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194))
     @State private var selectedPlace: Place?
     @State private var showPlaceDetail = false
+    @State private var hasCenteredOnUser = false
+    // Search counter - incrementing this forces AppleMapsSheetView to recreate with fresh scroll offset
+    @State private var searchId: Int = 0
     
     // MARK: - Body
     
@@ -60,21 +127,27 @@ struct MapExplorerView: View {
                 // Map
                 mapView
                 
-                // Search indicator
-                if let location = searchLocation {
-                    searchPinOverlay(at: location)
+                // Current location button
+                VStack {
+                    HStack {
+                        Spacer()
+                        currentLocationButton
+                            .padding(.trailing, 16)
+                            .padding(.top, 60)
+                    }
                 }
                 
-                // Bottom Sheet
+                // Bottom Sheet - .id(searchId) forces recreation to reset scroll offset
                 AppleMapsSheetView(
                     position: $sheetPosition,
                     configuration: AppleMapsSheetConfiguration(
-                        snapPositions: [.bottom, .middle, .top],
+                        snapPositions: [.bottom, .custom(heightRatio: 0.5), .top],
                         animation: .smooth
                     )
                 ) {
                     sheetContent
                 }
+                .id(searchId)
                 
                 // Navigation to detail
                 NavigationLink(
@@ -85,13 +158,47 @@ struct MapExplorerView: View {
                 }
             }
             .navigationBarHidden(true)
+            .onAppear {
+                locationManager.requestPermission()
+            }
+            .onReceive(locationManager.$userLocation) { newLocation in
+                // Center map on user location the first time
+                if let location = newLocation, !hasCenteredOnUser {
+                    region.center = location
+                    hasCenteredOnUser = true
+                }
+            }
+        }
+    }
+    
+    // MARK: - Current Location Button
+    
+    private var currentLocationButton: some View {
+        Button(action: {
+            if let location = locationManager.userLocation {
+                withAnimation {
+                    region.center = location
+                }
+            }
+        }) {
+            Image(systemName: "location.fill")
+                .font(.system(size: 20))
+                .foregroundColor(.blue)
+                .frame(width: 44, height: 44)
+                .background(Color(.systemBackground))
+                .clipShape(Circle())
+                .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
         }
     }
     
     // MARK: - Map View
     
     private var mapView: some View {
-        Map(coordinateRegion: $region, annotationItems: places) { place in
+        Map(
+            coordinateRegion: $region,
+            showsUserLocation: true,
+            annotationItems: places
+        ) { place in
             MapAnnotation(coordinate: place.coordinate) {
                 PlaceAnnotationView(place: place) {
                     selectedPlace = place
@@ -100,143 +207,92 @@ struct MapExplorerView: View {
             }
         }
         .ignoresSafeArea()
-        .onTapGesture { location in
-            // Convert tap to coordinate
-            let coordinate = region.center // Simplified - in real app use gesture location
-            searchNearby(at: coordinate)
+        .onTapGesture {
+            // Search at current map center using Apple Maps API
+            searchPlaces(for: selectedCategory, near: region.center)
         }
-        .gesture(
-            LongPressGesture(minimumDuration: 0.5)
-                .sequenced(before: DragGesture(minimumDistance: 0))
-                .onEnded { value in
-                    // Long press to place search pin
-                    searchNearby(at: region.center)
-                }
-        )
-    }
-    
-    // MARK: - Search Pin Overlay
-    
-    private func searchPinOverlay(at location: CLLocationCoordinate2D) -> some View {
-        VStack {
-            Spacer()
-            HStack {
-                Spacer()
-                VStack(spacing: 4) {
-                    Image(systemName: "mappin.circle.fill")
-                        .font(.system(size: 40))
-                        .foregroundColor(.red)
-                    Text("Searching here")
-                        .font(.caption)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.white)
-                        .cornerRadius(8)
-                        .shadow(radius: 2)
-                }
-                Spacer()
-            }
-            Spacer()
-        }
-        .allowsHitTesting(false)
     }
     
     // MARK: - Sheet Content
     
     private var sheetContent: some View {
         VStack(spacing: 0) {
-            // Category Pills
-            categoryPills
-                .padding(.bottom, 16)
-            
-            // Search status or results
-            if isSearching {
-                loadingView
-            } else if places.isEmpty {
-                emptyStateView
-            } else {
-                placesList
-            }
-        }
-    }
-    
-    // MARK: - Category Pills
-    
-    private var categoryPills: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(PlaceCategory.allCases, id: \.self) { category in
-                    CategoryPillButton(
-                        category: category,
-                        isSelected: selectedCategory == category
-                    ) {
-                        selectedCategory = category
-                        if let location = searchLocation {
-                            searchNearby(at: location)
+            // Category Pills - matches ExploreView filter pills pattern
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(PlaceCategory.allCases, id: \.self) { category in
+                        CategoryPillButton(
+                            category: category,
+                            isSelected: selectedCategory == category
+                        ) {
+                            selectedCategory = category
+                            searchPlaces(for: category, near: region.center)
                         }
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+            .padding(.bottom, 24)
+            
+            // Places List - matches ExploreView service list pattern
+            VStack(spacing: 0) {
+                ForEach(places) { place in
+                    PlaceRowView(place: place) {
+                        selectedPlace = place
+                        showPlaceDetail = true
                     }
                 }
             }
             .padding(.horizontal, 20)
+            .padding(.bottom, 24)
         }
-    }
-    
-    // MARK: - Loading View
-    
-    private var loadingView: some View {
-        VStack(spacing: 16) {
-            ProgressView()
-                .scaleEffect(1.5)
-            Text("Searching nearby...")
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 60)
-    }
-    
-    // MARK: - Empty State
-    
-    private var emptyStateView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "mappin.slash")
-                .font(.system(size: 48))
-                .foregroundColor(.secondary)
-            Text("Tap on the map to search nearby places")
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 60)
-        .padding(.horizontal, 40)
-    }
-    
-    // MARK: - Places List
-    
-    private var placesList: some View {
-        LazyVStack(spacing: 0) {
-            ForEach(places) { place in
-                PlaceRowView(place: place) {
-                    selectedPlace = place
-                    showPlaceDetail = true
-                }
-                Divider()
-                    .padding(.leading, 76)
-            }
-        }
-        .padding(.horizontal, 20)
     }
     
     // MARK: - Search Function
     
-    private func searchNearby(at coordinate: CLLocationCoordinate2D) {
-        searchLocation = coordinate
-        isSearching = true
-        sheetPosition = .middle
+    private func searchPlaces(for category: PlaceCategory, near coordinate: CLLocationCoordinate2D) {
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = category.searchQuery
+        request.region = MKCoordinateRegion(
+            center: coordinate,
+            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+        )
         
-        // Simulate API call
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            places = Place.mockPlaces(for: selectedCategory, near: coordinate)
-            isSearching = false
+        let search = MKLocalSearch(request: request)
+        search.start { response, error in
+            guard let response = response else {
+                // Fallback to mock data if search fails
+                places = Place.mockPlaces(for: category, near: coordinate)
+                searchId += 1
+                sheetPosition = .top
+                return
+            }
+            
+            // Convert MKMapItems to Place models
+            places = response.mapItems.prefix(10).map { item in
+                let distance = coordinate.distance(to: item.placemark.coordinate)
+                let distanceString = distance < 1609.34 
+                    ? String(format: "%.1f mi", distance / 1609.34)
+                    : String(format: "%.0f mi", distance / 1609.34)
+                
+                return Place(
+                    name: item.name ?? "Unknown",
+                    category: category,
+                    address: item.placemark.title ?? "",
+                    distance: distanceString,
+                    rating: Double.random(in: 3.5...5.0),
+                    reviewCount: Int.random(in: 10...500),
+                    isOpen: item.isCurrentLocation ? true : Bool.random(),
+                    coordinate: item.placemark.coordinate,
+                    imageURL: nil
+                )
+            }
+            
+            // Increment searchId to force AppleMapsSheetView recreation (resets scroll offset)
+            searchId += 1
+            
+            // Expand sheet to show results
+            sheetPosition = .top
         }
     }
 }
@@ -266,10 +322,22 @@ enum PlaceCategory: String, CaseIterable {
         switch self {
         case .restaurant: return .orange
         case .gasStation: return .green
-        case .cafe: return .brown
+        case .cafe: return Color(red: 0.6, green: 0.4, blue: 0.2) // Brown color for iOS 14+
         case .grocery: return .blue
         case .pharmacy: return .red
         case .parking: return .purple
+        }
+    }
+    
+    /// Search query for MKLocalSearch
+    var searchQuery: String {
+        switch self {
+        case .restaurant: return "restaurant"
+        case .gasStation: return "gas station"
+        case .cafe: return "cafe coffee"
+        case .grocery: return "grocery store supermarket"
+        case .pharmacy: return "pharmacy"
+        case .parking: return "parking"
         }
     }
 }
