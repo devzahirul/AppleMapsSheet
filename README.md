@@ -6,6 +6,12 @@ An Apple Maps-style interactive bottom sheet for SwiftUI and UIKit.
 [![iOS 14+](https://img.shields.io/badge/iOS-14+-blue.svg)](https://developer.apple.com/ios/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
+## 📹 Demo
+
+[![Watch Demo](https://img.shields.io/badge/YouTube-Demo-red?logo=youtube)](https://www.youtube.com/shorts/uQqQKW-RBKI)
+
+[▶️ Watch the demo video on YouTube](https://www.youtube.com/shorts/uQqQKW-RBKI)
+
 ## Features
 
 - 🎯 **Apple Maps-style behavior** - Seamless scroll/drag coordination
