@@ -8,9 +8,16 @@ An Apple Maps-style interactive bottom sheet for SwiftUI and UIKit.
 
 ## 📹 Demo
 
-[![Watch Demo](https://img.shields.io/badge/YouTube-Demo-red?logo=youtube)](https://www.youtube.com/shorts/uQqQKW-RBKI)
+<p align="center">
+  <a href="https://youtube.com/shorts/uQqQKW-RBKI?si=I9-Ue2LmnTPMXheU">
+    <img src="https://img.youtube.com/vi/uQqQKW-RBKI/0.jpg" alt="Watch Demo" width="300">
+  </a>
+</p>
 
-[▶️ Watch the demo video on YouTube](https://www.youtube.com/shorts/uQqQKW-RBKI)
+<p align="center">
+  <a href="https://youtube.com/shorts/uQqQKW-RBKI?si=I9-Ue2LmnTPMXheU">▶️ Watch the demo video</a>
+</p>
+
 
 ## Features
 
