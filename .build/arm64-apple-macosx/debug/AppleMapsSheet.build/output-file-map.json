@@ -1,0 +1,47 @@
+{
+  "": {
+    "swift-dependencies": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/master.swiftdeps"
+  },
+  "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/Sources/AppleMapsSheet/AppleMapsSheet.swift": {
+    "dependencies": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsSheet.d",
+    "object": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsSheet.swift.o",
+    "swiftmodule": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsSheet~partial.swiftmodule",
+    "swift-dependencies": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsSheet.swiftdeps",
+    "diagnostics": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsSheet.dia"
+  },
+  "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/Sources/AppleMapsSheet/Internal/AppleMapsScrollViewController.swift": {
+    "dependencies": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsScrollViewController.d",
+    "object": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsScrollViewController.swift.o",
+    "swiftmodule": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsScrollViewController~partial.swiftmodule",
+    "swift-dependencies": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsScrollViewController.swiftdeps",
+    "diagnostics": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsScrollViewController.dia"
+  },
+  "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/Sources/AppleMapsSheet/SheetConfiguration.swift": {
+    "dependencies": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/SheetConfiguration.d",
+    "object": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/SheetConfiguration.swift.o",
+    "swiftmodule": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/SheetConfiguration~partial.swiftmodule",
+    "swift-dependencies": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/SheetConfiguration.swiftdeps",
+    "diagnostics": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/SheetConfiguration.dia"
+  },
+  "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/Sources/AppleMapsSheet/SheetPosition.swift": {
+    "dependencies": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/SheetPosition.d",
+    "object": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/SheetPosition.swift.o",
+    "swiftmodule": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/SheetPosition~partial.swiftmodule",
+    "swift-dependencies": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/SheetPosition.swiftdeps",
+    "diagnostics": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/SheetPosition.dia"
+  },
+  "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/Sources/AppleMapsSheet/SwiftUI/AppleMapsSheetView.swift": {
+    "dependencies": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsSheetView.d",
+    "object": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsSheetView.swift.o",
+    "swiftmodule": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsSheetView~partial.swiftmodule",
+    "swift-dependencies": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsSheetView.swiftdeps",
+    "diagnostics": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsSheetView.dia"
+  },
+  "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/Sources/AppleMapsSheet/UIKit/AppleMapsSheetViewController.swift": {
+    "dependencies": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsSheetViewController.d",
+    "object": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsSheetViewController.swift.o",
+    "swiftmodule": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsSheetViewController~partial.swiftmodule",
+    "swift-dependencies": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsSheetViewController.swiftdeps",
+    "diagnostics": "/Users/lynkto_1/Documents/KarrotNewUI/AppleMapsSheet/.build/arm64-apple-macosx/debug/AppleMapsSheet.build/AppleMapsSheetViewController.dia"
+  }
+}
